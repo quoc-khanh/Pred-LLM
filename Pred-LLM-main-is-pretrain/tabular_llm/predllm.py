@@ -201,7 +201,7 @@ class PredLLM:
 
                 # Convert tokens back to tabular data
                 text_data = _convert_tokens_to_text(tokens, self.tokenizer)
-                print(f'text_data after gen: {text_data}')
+                # print(f'text_data after gen: {text_data}')
                 df_gen = _convert_text_to_tabular_data(text_data, pd.DataFrame(columns=self.columns))
 
                 # Remove rows where we have not generated anything
@@ -267,7 +267,7 @@ class PredLLM:
         for idx in range(X_train_new.shape[0]):
             encoded_text = _encode_row_partial(X_train_new.iloc[idx], shuffle=False)
             prompts.append(encoded_text)
-            print(f'prompt:{prompts}')
+            # print(f'prompt:{prompts}')
         y_train_gen = self.great_sample(prompts, max_length=max_length).iloc[:, -1:]
 
         n_llm_pred = 0
