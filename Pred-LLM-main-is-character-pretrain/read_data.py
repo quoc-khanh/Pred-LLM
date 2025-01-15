@@ -192,6 +192,11 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
         else:
             raise ValueError(f"Unknown dataset: {dataset}")
 
+        for item in numerical_cols:
+            print(f"{item}: {type(item)}")
+        for item in categorical_cols:
+            print(f"{item}: {type(item)}")
+
         numerical_cols = [x.replace(' ', '_') for x in numerical_cols]
         categorical_cols = [x.replace(' ', '_') for x in categorical_cols]
 
