@@ -255,6 +255,17 @@ with open(file_result + ".csv", 'w') as f:
                 auc = auc_dataset_method_run[data_id][method_id][run_id]
                 line = f"{dataset_name},{method_name},{classifier},{train_size},{test_size},{gen_size},{run_id},{acc},{recall},{f1},{auc}\n"
                 f.write(line)
+            acc_avg = round(np.mean(xgb_dataset_method_run), 4)
+            acc_std = round(np.std(xgb_dataset_method_run), 4)
+            recall_avg = round(np.mean(recall_dataset_method_run), 4)
+            recall_std = round(np.std(recall_dataset_method_run), 4)
+            f1_avg = round(np.mean(f1_dataset_method_run), 4)
+            f1_std = round(np.std(f1_dataset_method_run), 4)
+            auc_avg = round(np.mean(auc_dataset_method_run), 4)
+            auc_std = round(np.std(auc_dataset_method_run), 4)
+            run_id = 'avg'
+            line = f"{dataset_name},{method_name},{classifier},{train_size},{test_size},{gen_size},{run_id},{acc_avg},{recall_avg},{f1_avg},{auc_avg}\n"
+            f.write(line)
 
 # save metrics of all datasets to text file 
 with open(file_result + ".txt", 'w') as f:
