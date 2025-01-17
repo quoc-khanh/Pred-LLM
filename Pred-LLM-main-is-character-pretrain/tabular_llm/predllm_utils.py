@@ -160,13 +160,17 @@ def _get_string(numerical_features, feature, value):
     if feature not in numerical_features or value == 'None':
         return "%s %s" % (feature, value)
     else:
-        value = float(value)
-        value = f"{value:.3f}"
         s = "%s" % feature
-        if '.' in value:
+        # Convert single integers to floats with ".0"
+        if '.' not in value:
+            value = f"{float(value):.1f}"  # Add .0 to integers
+        else:
+            # Process floats with up to 3 decimal places
             tmp = value.split('.')[1]
             tmp = min(3, len(tmp))
             value = f"%.{tmp}f" % float(value)
+        # Create space-separated characters
         for v in value:
             s += ' %s' % v
         return s
+
