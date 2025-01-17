@@ -46,7 +46,7 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                 raise FileNotFoundError(f"File not found: {file_path}. Please download the dataset.")
 
             df = pd.read_csv(file_path, header=0, sep=",")
-            # df = df.applymap(lambda x: x.replace(' ', '_'))
+            df.columns = df.columns.str.replace(' ', '_')
 
             print(df.info())
 
@@ -192,8 +192,8 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
         else:
             raise ValueError(f"Unknown dataset: {dataset}")
 
-        # numerical_cols = [x.replace(' ', '_') for x in numerical_cols]
-        # categorical_cols = [x.replace(' ', '_') for x in categorical_cols]
+        numerical_cols = [x.replace(' ', '_') for x in numerical_cols]
+        categorical_cols = [x.replace(' ', '_') for x in categorical_cols]
 
         # Process the dataset if loaded from a file
         if df is not None:
