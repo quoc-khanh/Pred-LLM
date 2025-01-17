@@ -147,6 +147,9 @@ for dataset in datasets:
             if n_class_generative != n_class:
                 print("generate less/more than the number of real classes")
                 acc_new = 0
+                recall_new = 0
+                f1_new = 0
+                auc_new = 0
             else:
                 xgb_new = XGBClassifier(random_state=run)
                 xgb_new.fit(X_train_new, y_train_new)
