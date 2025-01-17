@@ -106,6 +106,11 @@ class PredLLM:
         print("Start training...")
         great_trainer.train(resume_from_checkpoint=resume_from_checkpoint)
 
+        logging.info(f"Saving trained model to {training_args.output_dir}...")
+        self.model.save_pretrained(training_args.output_dir)
+        self.tokenizer.save_pretrained(training_args.output_dir)
+        logging.info("Model and tokenizer saved successfully.")
+
         return great_trainer
 
   ###
