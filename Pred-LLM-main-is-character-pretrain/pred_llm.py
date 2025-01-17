@@ -8,6 +8,15 @@ from tabular_llm.predllm import PredLLM
 import read_data
 import torch
 
+import logging
+
+# Configure logging
+logging.basicConfig(
+    filename='experiment_log.txt',  # Log file name
+    level=logging.INFO,             # Log level
+    format='%(asctime)s - %(message)s'  # Log format
+)
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataset', default="iris", type=str, nargs='?', help='dataset name')
 parser.add_argument('--method', default="pred_llm", type=str, nargs='?', help='generative method')
@@ -165,8 +174,17 @@ for dataset in datasets:
                     auc_new = round(roc_auc_score(y_test, y_pred_prob), 4)
                 else:  # Bài toán đa lớp
                     auc_new = round(roc_auc_score(y_test, y_pred_proba, multi_class='ovr'), 4)
-                print("dataset: {}, method: {}, run: {}, accuracy: {}, recall: {}, f1: {}, auc: {}".format(
-                    dataset, method, run, acc_new, recall_new, f1_new, auc_new))
+                # Print and log
+                log_message = (
+                      "dataset: {}, method: {}, run: {}, accuracy: {}, recall: {}, f1: {}, auc: {}"
+                      .format(dataset, method, run, acc_new, recall_new, f1_new, auc_new)
+                  )
+                  
+                  # Print to console
+                print(log_message)
+                  
+                  # Write to log file
+                logging.info(log_message)
             # save metrics of each run of each method for each train_size in each dataset
             xgb_run[run] = acc_new
             recall_run[run] = recall_new
