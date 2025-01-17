@@ -160,6 +160,8 @@ def _get_string(numerical_features, feature, value):
     if feature not in numerical_features or value == 'None':
         return "%s %s" % (feature, value)
     else:
+        value = float(value)
+        value = f"{value:.3f}"
         s = "%s" % feature
         if '.' in value:
             tmp = value.split('.')[1]
