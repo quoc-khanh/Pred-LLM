@@ -195,6 +195,13 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
         numerical_cols = [x.replace(' ', '_') for x in numerical_cols]
         categorical_cols = [x.replace(' ', '_') for x in categorical_cols]
 
+        for col in categorical_cols:
+            df[col] = df[col].str.replace('-',' ')
+            df[col] = df[col].str.replace('_',' ')
+            df[col] = df[col].str.replace('/',' ')
+            df[col] = df[col].str.replace('\\',' ')
+            df[col] = df[col].str.replace('~',' ')
+
         # Process the dataset if loaded from a file
         if df is not None:
             X = df[numerical_cols].values
