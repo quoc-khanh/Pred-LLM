@@ -30,10 +30,10 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
             statlog_australian_credit_approval = fetch_ucirepo(id=143)
             X = statlog_australian_credit_approval.data.features
             y = statlog_australian_credit_approval.data.targets
-            # df = pd.concat([X, y], axis=1)
-            # numerical_cols = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14"]
-            df = pd.concat([X, y], axis=1).drop(columns = ["A8","A9","A10"])
-            numerical_cols = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A11", "A12", "A13", "A14"]
+            df = pd.concat([X, y], axis=1)
+            numerical_cols = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9", "A10", "A11", "A12", "A13", "A14"]
+            # df = pd.concat([X, y], axis=1).drop(columns = ["A8","A9","A10"])
+            # numerical_cols = ["A1", "A2", "A3", "A4", "A5", "A6", "A7", "A11", "A12", "A13", "A14"]
             categorical_cols = []
             target_col = "A15"
         elif dataset == 'iris': 
@@ -48,7 +48,6 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                 raise FileNotFoundError(f"File not found: {file_path}. Please download the dataset.")
 
             df = pd.read_csv(file_path, header=0, sep=",")
-            df.columns = df.columns.str.replace(' ', '_')
 
             print(df.info())
 
@@ -60,10 +59,19 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                 numerical_cols = ["Credit amount", "Duration"]
                 categorical_cols = ["Age", "Sex", "Job", "Housing", "Saving accounts", "Checking account", "Purpose"]
                 target_col = "Risk"
+                
+                df['Purpose'] = df['Purpose'].str.replace('/', ' or ')
+            
             elif dataset == "compas":
                 numerical_cols = ["age", "juv_fel_count", "juv_misd_count", "juv_other_count", "priors_count"]
-                categorical_cols = ["race", "sex", "c_charge_degree"]
+                categorical_cols = ["race", "sex", "c_charge_degree", "age_cat", "c_charge_desc"]
                 target_col = "two_year_recid"
+
+                df['age_cat'] = df[''].str.replace('-', 'to')
+                df['race'] = df[''].str.replace('-', 'and')
+                df['c_charge_desc'] = df[''].str.replace('/', ' or ')
+                df['c_charge_desc'] = df[''].str.replace(',', ' and ')
+            
             elif dataset == "bank":
                 numerical_cols = ["balance", "duration", "campaign", "pdays", "previous"]
                 categorical_cols = ["age", "marital", "job", "education", "default", "housing", "loan", "contact", "poutcome"]
@@ -194,8 +202,13 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
         else:
             raise ValueError(f"Unknown dataset: {dataset}")
 
-        numerical_cols = [x.replace(' ', '_') for x in numerical_cols]
-        categorical_cols = [x.replace(' ', '_') for x in categorical_cols]
+        df.columns = df.columns.str.replace(' ', '')
+        df.columns = df.columns.str.replace('_', '')
+
+        numerical_cols = [x.replace(' ', '') for x in numerical_cols]
+        categorical_cols = [x.replace(' ', '') for x in categorical_cols]
+        numerical_cols = [x.replace('_', '') for x in numerical_cols]
+        categorical_cols = [x.replace('_', '') for x in categorical_cols]
 
         # for col in categorical_cols:
         #     df[col] = df[col].str.replace('-',' ')
