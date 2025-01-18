@@ -156,6 +156,24 @@ def _encode_row_partial(row, shuffle=True):
     )
     return lists
 
+def _get_string(numerical_features, feature, value):
+    if feature not in numerical_features or value == 'None':
+        return "%s %s" % (feature, value)
+    else:
+        s = "%s" % feature
+        # Convert single integers to floats with ".0"
+        if '.' not in value:
+            tmp = value  # Add .0 to integers
+        else:
+            # Process floats with up to 3 decimal places
+            tmp = value.split('.')[1]
+            tmp = min(3, len(tmp))
+            value = f"%.{tmp}f" % float(value)
+        # Create space-separated characters
+        for v in value:
+            s += ' %s' % v
+        return s
+
 # def _get_string(numerical_features, feature, value):
 #     if feature not in numerical_features or value == 'None':
 #         return "%s %s" % (feature, value)
@@ -170,31 +188,13 @@ def _encode_row_partial(row, shuffle=True):
 #             tmp = min(3, len(tmp))
 #             value = f"%.{tmp}f" % float(value)
 #         # Create space-separated characters
+#         first_char = True
 #         for v in value:
-#             s += ' %s' % v
+#             if first_char and v == '-':
+#                 s += v  # Add '-' without a space
+#             else:
+#                 s += ' %s' % v
+#             first_char = False
 #         return s
-
-def _get_string(numerical_features, feature, value):
-    if feature not in numerical_features or value == 'None':
-        return "%s %s" % (feature, value)
-    else:
-        s = "%s" % feature
-        # Convert single integers to floats with ".0"
-        if '.' not in value:
-            value = f"{float(value):.1f}"  # Add .0 to integers
-        else:
-            # Process floats with up to 3 decimal places
-            tmp = value.split('.')[1]
-            tmp = min(3, len(tmp))
-            value = f"%.{tmp}f" % float(value)
-        # Create space-separated characters
-        first_char = True
-        for v in value:
-            if first_char and v == '-':
-                s += v  # Add '-' without a space
-            else:
-                s += ' %s' % v
-            first_char = False
-        return s
 
 
