@@ -67,10 +67,10 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                 categorical_cols = ["race", "sex", "c_charge_degree", "age_cat", "c_charge_desc"]
                 target_col = "two_year_recid"
 
-                df['age_cat'] = df[''].str.replace('-', 'to')
-                df['race'] = df[''].str.replace('-', 'and')
-                df['c_charge_desc'] = df[''].str.replace('/', ' or ')
-                df['c_charge_desc'] = df[''].str.replace(',', ' and ')
+                df['age_cat'] = df['age_cat'].str.replace('-', 'to')
+                df['race'] = df['race'].str.replace('-', 'and')
+                df['c_charge_desc'] = df['c_charge_desc'].str.replace('/', ' or ')
+                df['c_charge_desc'] = df['c_charge_desc'].str.replace(',', ' and ')
             
             elif dataset == "bank":
                 numerical_cols = ["balance", "duration", "campaign", "pdays", "previous"]
