@@ -9,6 +9,7 @@ from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 import openml
 import yfinance as yf
 from fredapi import Fred
+from sklearn.preprocessing import LabelEncoder
 import os
 
 def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=True, seed=42, fred_api_key=None, data_dir="./data"):
@@ -60,17 +61,17 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                 categorical_cols = ["Age", "Sex", "Job", "Housing", "Saving accounts", "Checking account", "Purpose"]
                 target_col = "Risk"
                 
-                df['Purpose'] = df['Purpose'].str.replace('/', ' or ')
+                # df['Purpose'] = df['Purpose'].str.replace('/', ' or ')
             
             elif dataset == "compas":
                 numerical_cols = ["age", "juv_fel_count", "juv_misd_count", "juv_other_count", "priors_count"]
                 categorical_cols = ["race", "sex", "c_charge_degree", "age_cat", "c_charge_desc"]
                 target_col = "two_year_recid"
 
-                df['age_cat'] = df['age_cat'].str.replace('-', 'to')
-                df['race'] = df['race'].str.replace('-', 'and')
-                df['c_charge_desc'] = df['c_charge_desc'].str.replace('/', ' or ')
-                df['c_charge_desc'] = df['c_charge_desc'].str.replace(',', ' and ')
+                # df['age_cat'] = df['age_cat'].str.replace('-', 'to')
+                # df['race'] = df['race'].str.replace('-', 'and')
+                # df['c_charge_desc'] = df['c_charge_desc'].str.replace('/', ' or ')
+                # df['c_charge_desc'] = df['c_charge_desc'].str.replace(',', ' and ')
             
             elif dataset == "bank":
                 numerical_cols = ["balance", "duration", "campaign", "pdays", "previous"]
@@ -213,6 +214,10 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
         target_col = target_col.replace(' ', '')
         target_col = target_col.replace('_', '')
 
+        label_encoder = LabelEncoder()
+        # Apply LabelEncoder to each column in the list
+        for col in categorical_cols:
+            df[col] = label_encoder.fit_transform(df[col])
 
         # for col in categorical_cols:
         #     df[col] = df[col].str.replace('-',' ')
