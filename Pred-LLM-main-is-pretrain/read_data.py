@@ -227,7 +227,7 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
         for col in categorical_cols:
             df[col] = label_encoder.fit_transform(df[col])
             df[col] = df[col].map(num_to_word)
-
+        print(df.head(5))
         # for col in categorical_cols:
         #     df[col] = df[col].str.replace('-',' ')
         #     df[col] = df[col].str.replace('_',' ')
