@@ -10,6 +10,7 @@ import openml
 import yfinance as yf
 from fredapi import Fred
 from sklearn.preprocessing import LabelEncoder
+import inflect  # Library to convert numbers to words
 import os
 
 def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=True, seed=42, fred_api_key=None, data_dir="./data"):
@@ -214,10 +215,18 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
         target_col = target_col.replace(' ', '')
         target_col = target_col.replace('_', '')
 
+        # Initialize inflect engine
+        p = inflect.engine()
+        
+        # Generate mapping for numbers from 0 to 99
+        num_to_word = {i: p.number_to_words(i) for i in range(100)}
+
+
         label_encoder = LabelEncoder()
         # Apply LabelEncoder to each column in the list
         for col in categorical_cols:
             df[col] = label_encoder.fit_transform(df[col])
+            df[col] = df[col].map(num_to_word)
 
         # for col in categorical_cols:
         #     df[col] = df[col].str.replace('-',' ')
