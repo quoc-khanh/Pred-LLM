@@ -40,7 +40,7 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
             categorical_cols = []
             target_col = 'target'
         # File-based datasets
-        elif dataset in ["german_credit","credit_card_fraud" , "adult", "compas", "bank", "home_credit", "lending_club", "paysim", "ieee_cis", "churn", "credit", "travel", "king", "heloc"]:
+        elif dataset in ["german_credit","credit_card_fraud" , "adult", "compas", "bank", "home_credit", "lending_club", "paysim", "ieee_cis", "churn", "credit", "travel", "king", "heloc", "modified_admissions"]:
             file_path = os.path.join(data_dir, f"{dataset}.csv")
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"File not found: {file_path}. Please download the dataset.")
@@ -165,6 +165,17 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                                     "PaymentMethod"
                                 ]
                 target_col = "Churn"
+            elif dataset == "modified_admissions":
+                # df['MonthlyCharges'] = df['MonthlyCharges'].fillna(0)
+                # df['TotalCharges'] = df['TotalCharges'].fillna(0)
+                df = df.drop(columns=['row_id', 'subject_id', 'hadm_id'])
+                numerical_cols = ['has_chartevents_data', 'mortality']
+                categorical_cols = ['admittime', 'dischtime', 'admission_type', 'admission_location',
+       'discharge_location', 'insurance', 'religion', 'marital_status',
+       'ethnicity', 'diagnosis']
+                target_col = "hospital_expire_flag"
+            else:
+                raise ValueError(f"No configuration for dataset: {dataset}")
             else:
                 raise ValueError(f"No configuration for dataset: {dataset}")
 
