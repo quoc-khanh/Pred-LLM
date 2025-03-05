@@ -176,8 +176,6 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                 target_col = "hospital_expire_flag"
             else:
                 raise ValueError(f"No configuration for dataset: {dataset}")
-            else:
-                raise ValueError(f"No configuration for dataset: {dataset}")
 
         # Other datasets
         # elif dataset == "credit_card_fraud":
