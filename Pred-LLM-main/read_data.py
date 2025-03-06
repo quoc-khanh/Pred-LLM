@@ -169,8 +169,8 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                 # df['MonthlyCharges'] = df['MonthlyCharges'].fillna(0)
                 # df['TotalCharges'] = df['TotalCharges'].fillna(0)
                 # df = df.drop(columns=['row_id', 'subject_id', 'hadm_id'])
-                numerical_cols = ['sex', 'ethnicity', 'metastatic_cancer', 'diabetes', 'vent', 'sepsis']
-                categorical_cols = ['age', 'hospital_elixhauser', 'couch', 'sirs', 'qsofa',
+                categorical_cols = ['sex', 'ethnicity', 'metastatic_cancer', 'diabetes', 'vent', 'sepsis']
+                numerical_cols = ['age', 'hospital_elixhauser', 'couch', 'sirs', 'qsofa',
        'anion_gap_medium', 'bocarbonate_medium', 'creatinine_medium',
        'glucose_medium', 'hemoglobin_medium', 'lactate_medium',
        'platelet_means', 'potassium_means', 'inr_means', 'sodium_means',
