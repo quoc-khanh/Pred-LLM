@@ -168,11 +168,14 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
             elif dataset == "modified_admissions":
                 # df['MonthlyCharges'] = df['MonthlyCharges'].fillna(0)
                 # df['TotalCharges'] = df['TotalCharges'].fillna(0)
-                df = df.drop(columns=['row_id', 'subject_id', 'hadm_id'])
-                numerical_cols = ['has_chartevents_data', 'mortality']
-                categorical_cols = ['admittime', 'dischtime', 'admission_type', 'admission_location',
-       'discharge_location', 'insurance', 'religion', 'marital_status',
-       'ethnicity', 'diagnosis']
+                # df = df.drop(columns=['row_id', 'subject_id', 'hadm_id'])
+                numerical_cols = ['sex', 'ethnicity', 'metastatic_cancer', 'diabetes', 'vent', 'sepsis']
+                categorical_cols = ['age', 'hospital_elixhauser', 'couch', 'sirs', 'qsofa',
+       'anion_gap_medium', 'bocarbonate_medium', 'creatinine_medium',
+       'glucose_medium', 'hemoglobin_medium', 'lactate_medium',
+       'platelet_means', 'potassium_means', 'inr_means', 'sodium_means',
+       'wbc_means', 'heart_rate_means', 'sys_bp_means', 'dias_bp_means',
+       'resp_rate_means', 'temp_c_means', 'spo2_medians', 'urine_output']
                 target_col = "hospital_expire_flag"
             else:
                 raise ValueError(f"No configuration for dataset: {dataset}")
