@@ -40,30 +40,34 @@ class TaptapDataset(Dataset):
 
 
     def _getitem(self, key: tp.Union[int, slice, str], decoded: bool = True, **kwargs) -> tp.Union[tp.Dict, tp.List]:
-        """ Get Item from Tabular Data
-
-        Get one instance of the tabular data, permuted, converted to text and tokenized.
-        """
-
-        if isinstance(key, list):
-            return [self._getitem(k, decoded=decoded, **kwargs) for k in key]
-
-        
-        # If int, what else?
+        # If key is a list or tuple, process each index and collate the results.
+        if isinstance(key, (list, tuple)):
+            items = [self._getitem(k, decoded=decoded, **kwargs) for k in key]
+            collated = {}
+            for item in items:
+                for k, v in item.items():
+                    collated.setdefault(k, []).append(v)
+            return collated
+    
+        # Process a single index (int, slice, or str).
         shuffled_text = ""
-        # for k in [key, np.random.randint(0, len(self._data))]:
-
         row = self._data.fast_slice(key, 1)
         if self.shuffled_idx is None:
-            shuffle_idx = list(range(row.num_columns-1))
+            shuffle_idx = list(range(row.num_columns - 1))
             random.shuffle(shuffle_idx)
         else:
             shuffle_idx = self.shuffled_idx
-
+    
         shuffled_text += ", ".join(
-            [_get_string(self.numerical_modeling, self.numerical_features,
-                         row.column_names[i], str(row.columns[i].to_pylist()[0]).strip())
-             for i in shuffle_idx]
+            [
+                _get_string(
+                    self.numerical_modeling,
+                    self.numerical_features,
+                    row.column_names[i],
+                    str(row.columns[i].to_pylist()[0]).strip()
+                )
+                for i in shuffle_idx
+            ]
         )
         if random.random() < 0.0001:
             print(shuffled_text)
@@ -71,7 +75,6 @@ class TaptapDataset(Dataset):
         tokenized_text['input_ids'] = tokenized_text['input_ids'][:self.max_tokens]
         tokenized_text['attention_mask'] = tokenized_text['attention_mask'][:self.max_tokens]
         return tokenized_text
-
 
 class MyDataset(Dataset):
     def __init__(self, tokenizer, numerical_modeling,
