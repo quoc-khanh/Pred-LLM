@@ -189,7 +189,7 @@ for dataset in datasets:
                                             max_length=1024)
 
                 # Label generation
-                X_y_train_new[target_col] = gbm.predict(synthetic_data.drop(columns=[target_col]))
+                X_y_train_new[target_col] = gbm.predict(X_y_train_new.drop(columns=[target_col]))
                 
                 
                 X_train_new = X_y_train_new.iloc[:, :-1].to_numpy(dtype=float).reshape(-1, n_feature)
