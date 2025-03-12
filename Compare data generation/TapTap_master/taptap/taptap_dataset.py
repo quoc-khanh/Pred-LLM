@@ -46,7 +46,7 @@ class TaptapDataset(Dataset):
         """
 
         if isinstance(key, list):
-        return [self._getitem(k, decoded=decoded, **kwargs) for k in key]
+            return [self._getitem(k, decoded=decoded, **kwargs) for k in key]
 
         
         # If int, what else?
