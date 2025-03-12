@@ -44,6 +44,11 @@ class TaptapDataset(Dataset):
 
         Get one instance of the tabular data, permuted, converted to text and tokenized.
         """
+
+        if isinstance(key, list):
+        return [self._getitem(k, decoded=decoded, **kwargs) for k in key]
+
+        
         # If int, what else?
         shuffled_text = ""
         # for k in [key, np.random.randint(0, len(self._data))]:
