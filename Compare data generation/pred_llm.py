@@ -64,7 +64,7 @@ gen_size = float(args.gensize)
 n_run = int(args.runs)
 
 llm_batch_size = 32
-llm_epochs = 1000
+llm_epochs = 1 #1000
 
 if dataset_input == "classification":
     # datasets = ["iris", "breast_cancer", "australian",
@@ -216,13 +216,13 @@ for dataset in datasets:
                     # print(f"Feature old: {X_y_train_df.columns[:-1].tolist()}")
                     # print(f"Feature new: {X_y_train_new.columns[:-1].tolist()}")
                 if method == "great":
-                    model = GReaT(llm='distilgpt2', batch_size=8,  epochs=1000, fp16=True)
+                    model = GReaT(llm='distilgpt2', batch_size=llm_batch_size,  epochs=llm_epochs, fp16=True)
                     model.fit(X_y_train_df)
                     X_y_train_new = model.sample(n_samples=n_generative)
                 if method == "ctgan":
                     synthesizer = CTGANSynthesizer(metadata, # required
                                                     enforce_rounding=False,
-                                                    epochs=1000,
+                                                    epochs=llm_epochs,
                                                     verbose=False
                                                 )
                     synthesizer.fit(X_y_train_df)
@@ -235,7 +235,7 @@ for dataset in datasets:
                                                             'amenities_fee': 'beta',
                                                             'checkin_date': 'uniform'
                                                         },
-                                                        epochs=1000,
+                                                        epochs=llm_epochs,
                                                         verbose=False
                                                     )
                     synthesizer.fit(X_y_train_df)
@@ -244,7 +244,7 @@ for dataset in datasets:
                     synthesizer = TVAESynthesizer(metadata, # required
                                                     enforce_min_max_values=True,
                                                     enforce_rounding=False,
-                                                    epochs=1000
+                                                    epochs=llm_epochs
                                                 )
                     synthesizer.fit(X_y_train_df)
                     X_y_train_new = synthesizer.sample(num_rows=n_generative)
