@@ -64,7 +64,7 @@ gen_size = float(args.gensize)
 n_run = int(args.runs)
 
 llm_batch_size = 32
-llm_epochs = 1 #1000
+llm_epochs = 1000
 
 if dataset_input == "classification":
     # datasets = ["iris", "breast_cancer", "australian",
@@ -231,10 +231,6 @@ for dataset in datasets:
                     synthesizer = CopulaGANSynthesizer(metadata, # required
                                                         enforce_min_max_values=True,
                                                         enforce_rounding=False,
-                                                        numerical_distributions={
-                                                            'amenities_fee': 'beta',
-                                                            'checkin_date': 'uniform'
-                                                        },
                                                         epochs=llm_epochs,
                                                         verbose=False
                                                     )
