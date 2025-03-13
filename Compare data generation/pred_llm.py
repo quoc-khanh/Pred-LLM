@@ -188,8 +188,8 @@ for dataset in datasets:
     
                     model = Taptap(llm='ztphs980/taptap-distill',
                                 experiment_dir='./experiment_taptap/',
-                                steps=1000,
-                                batch_size=8,
+                                steps=llm_epochs,
+                                batch_size=llm_batch_size,
                                 numerical_modeling='split',
                                 gradient_accumulation_steps=2)
     
