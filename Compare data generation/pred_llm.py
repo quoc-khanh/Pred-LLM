@@ -15,6 +15,15 @@ import lightgbm as lgb
 from sklearn.metrics import f1_score
 from sklearn.model_selection import train_test_split
 
+###GREAT
+from be_great import GReaT
+
+###CTGAN COPULA_GAN TVAE 
+from sdv.single_table import CTGANSynthesizer
+from sdv.single_table import CopulaGANSynthesizer
+from sdv.single_table import TVAESynthesizer
+from sdv.metadata import Metadata
+
 import logging
 
 # Configure logging
@@ -55,7 +64,7 @@ gen_size = float(args.gensize)
 n_run = int(args.runs)
 
 llm_batch_size = 32
-llm_epochs = 50
+llm_epochs = 1000
 
 if dataset_input == "classification":
     # datasets = ["iris", "breast_cancer", "australian",
@@ -111,86 +120,134 @@ for dataset in datasets:
             # train a generative method
             if method == "original":
                 X_train_new, y_train_new = X_train, y_train
+            else:
+                X_y_train = np.append(X_train, y_train.reshape(-1, 1), axis=1)
+                X_y_train_df = pd.DataFrame(X_y_train)
+                X_y_train_df.columns = np.append(feature_names, "target")
+    
+                #make metadata for sdv models
+                metadata = Metadata.detect_from_dataframe(data=X_y_train_df,
+                                                                table_name=dataset
+                                                             )
                 
-            X_y_train = np.append(X_train, y_train.reshape(-1, 1), axis=1)
-            X_y_train_df = pd.DataFrame(X_y_train)
-            X_y_train_df.columns = np.append(feature_names, "target")
-            
-            X_y_test = np.append(X_test, y_test.reshape(-1, 1), axis=1)
-            X_y_test_df = pd.DataFrame(X_y_test)
-            X_y_test_df.columns = np.append(feature_names, "target")
-            
-            if method == "pred_llm":
+                X_y_test = np.append(X_test, y_test.reshape(-1, 1), axis=1)
+                X_y_test_df = pd.DataFrame(X_y_test)
+                X_y_test_df.columns = np.append(feature_names, "target")
                 
-                predllm = PredLLM(llm='distilgpt2', batch_size=llm_batch_size, epochs=llm_epochs)#TODO  distilgpt2
-                
-                # predllm.model.load_state_dict(torch.load("adult_king_insurance_intrusion_covtype_pretrained.pt"), strict=False)
-                
-                predllm.fit(X_y_train_df)
-                # compute length of input sequence
-                encoded_text = _encode_row_partial(X_y_train_df.iloc[0], shuffle=False) #TODO
-                prompt_len = len(predllm.tokenizer(encoded_text)["input_ids"])
-                X_y_train_new = predllm.sample_new(n_samples=n_generative, max_length=prompt_len, task="classification")
-                X_train_new = X_y_train_new.iloc[:, :-1].to_numpy(dtype=float).reshape(-1, n_feature)
-                y_train_new = X_y_train_new.iloc[:, -1:].to_numpy(dtype=float).reshape(-1, )
-                unique_values = np.unique(y_train_new)
-                print(f"Unique values in y_train_new: {unique_values}")
-                print(f"Number of unique values: {len(unique_values)}")
-                # TODO
-                print(f"Feature old: {X_y_train_df.columns[:-1].tolist()}")
-                print(f"Feature new: {X_y_train_new.columns[:-1].tolist()}")
-                
-                # Print first 3 rows of original and generated data
-                print("\nFirst 3 rows of original training data:")
-                print(X_y_train_df.iloc[0:3])
-                print("\nFirst 3 rows of generated data:")
-                print(X_y_train_new.iloc[0:3])
-                
-                # Concatenate the generated data with the original training data
-                # Rename features of X_y_train_new to match X_y_train_df
-                X_y_train_new.columns = X_y_train_df.columns #rename feature of X_y_train_new the same as X_y_train_df TODO
-                X_y_train_new_ORI = pd.concat([X_y_train_new, X_y_train_df[X_y_train_new.columns]], axis=0, ignore_index=True)
-                X_train_new_ORI = X_y_train_new.iloc[:, :-1].to_numpy(dtype=float).reshape(-1, n_feature)
-                y_train_new_ORI = X_y_train_new.iloc[:, -1:].to_numpy(dtype=float).reshape(-1, )
-
-                # file_name = "ds{}_tr{}_te{}_ge{}_run{}".format(dataset, train_size, test_size, gen_size, run)
-                # with open("./results/_classification/{}/X_gen_ORI_{}.npz".format(method, file_name), "wb") as f:
-                #     np.save(f, X_train_new_ORI)
-                # with open("./results/_classification/{}/y_gen_ORI_{}.npz".format(method, file_name), "wb") as f:
-                #     np.save(f, y_train_new_ORI)
-            if method == "pred_llm_dpo":continue
-
-            if method == "taptap":
-                train_data, test_data = X_y_train_df, X_y_test_df
-                target_col = 'target'
-                task = 'classification'
-                best_params = lightgbm_hpo(
-                    data=train_data, target_col=target_col, task=task, n_trials=10, n_jobs=16
-                )
-                original_score, gbm = get_score(
-                    train_data, test_data, target_col=target_col, best_params=best_params
-                )
-                print("The score training by the original data is", original_score)
-
-                model = Taptap(llm='ztphs980/taptap-distill',
-                            experiment_dir='./experiment_taptap/',
-                            steps=1000,
-                            batch_size=8,
-                            numerical_modeling='split',
-                            gradient_accumulation_steps=2)
-
-                # Fine-tuning
-                model.fit(train_data, target_col=target_col, task=task)
-
-                # Sampling
-                X_y_train_new = model.sample(n_samples=2 * train_data.shape[0],
-                                            data=train_data,
-                                            task=task,
-                                            max_length=1024)
-
-                # Label generation
-                X_y_train_new[target_col] = gbm.predict(X_y_train_new.drop(columns=[target_col]))
-                
+                if method == "pred_llm":
+                    
+                    predllm = PredLLM(llm='distilgpt2', batch_size=llm_batch_size, epochs=llm_epochs)#TODO  distilgpt2
+                    
+                    # predllm.model.load_state_dict(torch.load("adult_king_insurance_intrusion_covtype_pretrained.pt"), strict=False)
+                    
+                    predllm.fit(X_y_train_df)
+                    # compute length of input sequence
+                    encoded_text = _encode_row_partial(X_y_train_df.iloc[0], shuffle=False) #TODO
+                    prompt_len = len(predllm.tokenizer(encoded_text)["input_ids"])
+                    X_y_train_new = predllm.sample_new(n_samples=n_generative, max_length=prompt_len, task="classification")
+                    X_train_new = X_y_train_new.iloc[:, :-1].to_numpy(dtype=float).reshape(-1, n_feature)
+                    y_train_new = X_y_train_new.iloc[:, -1:].to_numpy(dtype=float).reshape(-1, )
+                    unique_values = np.unique(y_train_new)
+                    print(f"Unique values in y_train_new: {unique_values}")
+                    print(f"Number of unique values: {len(unique_values)}")
+                    # TODO
+                    print(f"Feature old: {X_y_train_df.columns[:-1].tolist()}")
+                    print(f"Feature new: {X_y_train_new.columns[:-1].tolist()}")
+                    
+                    # Print first 3 rows of original and generated data
+                    print("\nFirst 3 rows of original training data:")
+                    print(X_y_train_df.iloc[0:3])
+                    print("\nFirst 3 rows of generated data:")
+                    print(X_y_train_new.iloc[0:3])
+                    
+                    # Concatenate the generated data with the original training data
+                    # Rename features of X_y_train_new to match X_y_train_df
+                    X_y_train_new.columns = X_y_train_df.columns #rename feature of X_y_train_new the same as X_y_train_df TODO
+                    X_y_train_new_ORI = pd.concat([X_y_train_new, X_y_train_df[X_y_train_new.columns]], axis=0, ignore_index=True)
+                    X_train_new_ORI = X_y_train_new.iloc[:, :-1].to_numpy(dtype=float).reshape(-1, n_feature)
+                    y_train_new_ORI = X_y_train_new.iloc[:, -1:].to_numpy(dtype=float).reshape(-1, )
+    
+                    # file_name = "ds{}_tr{}_te{}_ge{}_run{}".format(dataset, train_size, test_size, gen_size, run)
+                    # with open("./results/_classification/{}/X_gen_ORI_{}.npz".format(method, file_name), "wb") as f:
+                    #     np.save(f, X_train_new_ORI)
+                    # with open("./results/_classification/{}/y_gen_ORI_{}.npz".format(method, file_name), "wb") as f:
+                    #     np.save(f, y_train_new_ORI)
+                if method == "pred_llm_dpo":continue
+    
+                if method == "taptap":
+                    train_data, test_data = X_y_train_df, X_y_test_df
+                    target_col = 'target'
+                    task = 'classification'
+                    best_params = lightgbm_hpo(
+                        data=train_data, target_col=target_col, task=task, n_trials=10, n_jobs=16
+                    )
+                    original_score, gbm = get_score(
+                        train_data, test_data, target_col=target_col, best_params=best_params
+                    )
+                    print("The score training by the original data is", original_score)
+    
+                    model = Taptap(llm='ztphs980/taptap-distill',
+                                experiment_dir='./experiment_taptap/',
+                                steps=1000,
+                                batch_size=8,
+                                numerical_modeling='split',
+                                gradient_accumulation_steps=2)
+    
+                    # Fine-tuning
+                    model.fit(train_data, target_col=target_col, task=task)
+    
+                    # Sampling
+                    X_y_train_new = model.sample(n_samples=n_generative,
+                                                data=train_data,
+                                                task=task,
+                                                max_length=1024)
+    
+                    # Label generation
+                    X_y_train_new[target_col] = gbm.predict(X_y_train_new.drop(columns=[target_col]))
+                    
+                    
+                    # X_train_new = X_y_train_new.iloc[:, :-1].to_numpy(dtype=float).reshape(-1, n_feature)
+                    # y_train_new = X_y_train_new.iloc[:, -1:].to_numpy(dtype=float).reshape(-1, )
+                    # X_y_train_new.columns = X_y_train_df.columns
+                    # unique_values = np.unique(y_train_new)
+                    # print(f"Unique values in y_train_new: {unique_values}")
+                    # print(f"Number of unique values: {len(unique_values)}")
+                    # # TODO
+                    # print(f"Feature old: {X_y_train_df.columns[:-1].tolist()}")
+                    # print(f"Feature new: {X_y_train_new.columns[:-1].tolist()}")
+                if method == "great":
+                    model = GReaT(llm='distilgpt2', batch_size=8,  epochs=1000, fp16=True)
+                    model.fit(X_y_train_df)
+                    X_y_train_new = model.sample(n_samples=n_generative)
+                if method == "ctgan":
+                    synthesizer = CTGANSynthesizer(metadata, # required
+                                                    enforce_rounding=False,
+                                                    epochs=1000,
+                                                    verbose=False
+                                                )
+                    synthesizer.fit(X_y_train_df)
+                    X_y_train_new = synthesizer.sample(num_rows=n_generative) 
+                if method == "copula_gan": 
+                    synthesizer = CopulaGANSynthesizer(metadata, # required
+                                                        enforce_min_max_values=True,
+                                                        enforce_rounding=False,
+                                                        numerical_distributions={
+                                                            'amenities_fee': 'beta',
+                                                            'checkin_date': 'uniform'
+                                                        },
+                                                        epochs=1000,
+                                                        verbose=False
+                                                    )
+                    synthesizer.fit(X_y_train_df)
+                    X_y_train_new = synthesizer.sample(num_rows=n_generative)
+                if method == "tvae": 
+                    synthesizer = TVAESynthesizer(metadata, # required
+                                                    enforce_min_max_values=True,
+                                                    enforce_rounding=False,
+                                                    epochs=1000
+                                                )
+                    synthesizer.fit(X_y_train_df)
+                    X_y_train_new = synthesizer.sample(num_rows=n_generative)
                 
                 X_train_new = X_y_train_new.iloc[:, :-1].to_numpy(dtype=float).reshape(-1, n_feature)
                 y_train_new = X_y_train_new.iloc[:, -1:].to_numpy(dtype=float).reshape(-1, )
@@ -201,15 +258,6 @@ for dataset in datasets:
                 # TODO
                 print(f"Feature old: {X_y_train_df.columns[:-1].tolist()}")
                 print(f"Feature new: {X_y_train_new.columns[:-1].tolist()}")
-            if method == "great":continue
-            
-            if method == "ctgan":continue
-            
-            if method == "copula_gan": continue
-            
-            if method == "tvae": continue
-            
-              
                 
 
             print("X_train: {}, y_train: {}".format(X_train.shape, y_train.shape))
