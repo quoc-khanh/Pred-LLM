@@ -192,6 +192,7 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
        'Chloride', 'Anion gap', 'Magnesium ion', 'PH', 'Bicarbonate',
        'Lactic acid', 'PCO2', 'EF']
                 target_col = 'group'
+                df["group"] = df["group"].replace({1: 0, 2: 1})
             else:
                 raise ValueError(f"No configuration for dataset: {dataset}")
 
