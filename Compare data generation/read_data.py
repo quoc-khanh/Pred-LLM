@@ -40,7 +40,8 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
             categorical_cols = []
             target_col = 'target'
         # File-based datasets
-        elif dataset in ["german_credit","credit_card_fraud" , "adult", "compas", "bank", "home_credit", "lending_club", "paysim", "ieee_cis", "churn", "credit", "travel", "king", "heloc", "modified_admissions"]:
+        elif dataset in ["german_credit","credit_card_fraud" , "adult", "compas", "bank", "home_credit", "lending_club", "paysim", "ieee_cis", "churn", 
+                         "credit", "travel", "king", "heloc", "modified_admissions", "data01"]:
             file_path = os.path.join(data_dir, f"{dataset}.csv")
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"File not found: {file_path}. Please download the dataset.")
@@ -177,6 +178,20 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
        'wbc_means', 'heart_rate_means', 'sys_bp_means', 'dias_bp_means',
        'resp_rate_means', 'temp_c_means', 'spo2_medians', 'urine_output']
                 target_col = "hospital_expire_flag"
+            elif dataset == "data01":
+                categorical_cols = ['outcome', 'gendera', 'hypertensive',
+       'atrialfibrillation', 'CHD with no MI', 'diabetes', 'deficiencyanemias',
+       'depression', 'Hyperlipemia', 'Renal failure', 'COPD']
+                numerical_cols =  ['age', 'BMI', 'heart rate',
+       'Systolic blood pressure', 'Diastolic blood pressure',
+       'Respiratory rate', 'temperature', 'SP O2', 'Urine output',
+       'hematocrit', 'RBC', 'MCH', 'MCHC', 'MCV', 'RDW', 'Leucocyte',
+       'Platelets', 'Neutrophils', 'Basophils', 'Lymphocyte', 'PT', 'INR',
+       'NT-proBNP', 'Creatine kinase', 'Creatinine', 'Urea nitrogen',
+       'glucose', 'Blood potassium', 'Blood sodium', 'Blood calcium',
+       'Chloride', 'Anion gap', 'Magnesium ion', 'PH', 'Bicarbonate',
+       'Lactic acid', 'PCO2', 'EF']
+                target_col = 'group'
             else:
                 raise ValueError(f"No configuration for dataset: {dataset}")
 
