@@ -4,7 +4,7 @@ import pandas as pd
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForSequenceClassification, AdamW
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
-from utils import format_row
+from P_TA_main.utils import format_row
 
 
 def remove_random_values(input_text, num_remove=2):
