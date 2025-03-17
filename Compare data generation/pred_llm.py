@@ -65,7 +65,9 @@ gen_size = float(args.gensize)
 n_run = int(args.runs)
 
 llm_batch_size = 32
-llm_epochs = 1000
+llm_epochs = 50
+nn_batch_size = 512
+nn_epochs = 1000
 
 if dataset_input == "classification":
     # datasets = ["iris", "breast_cancer", "australian",
@@ -223,7 +225,7 @@ for dataset in datasets:
                 if method == "ctgan":
                     synthesizer = CTGANSynthesizer(metadata, # required
                                                     enforce_rounding=False,
-                                                    epochs=llm_epochs,
+                                                    epochs=nn_epochs,
                                                     verbose=False
                                                 )
                     synthesizer.fit(X_y_train_df)
@@ -232,7 +234,7 @@ for dataset in datasets:
                     synthesizer = CopulaGANSynthesizer(metadata, # required
                                                         enforce_min_max_values=True,
                                                         enforce_rounding=False,
-                                                        epochs=llm_epochs,
+                                                        epochs=nn_epochs,
                                                         verbose=False
                                                     )
                     synthesizer.fit(X_y_train_df)
@@ -241,7 +243,7 @@ for dataset in datasets:
                     synthesizer = TVAESynthesizer(metadata, # required
                                                     enforce_min_max_values=True,
                                                     enforce_rounding=False,
-                                                    epochs=llm_epochs
+                                                    epochs=nn_epochs
                                                 )
                     synthesizer.fit(X_y_train_df)
                     X_y_train_new = synthesizer.sample(num_rows=n_generative)
