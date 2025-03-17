@@ -4,7 +4,7 @@ import pandas as pd
 from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForSequenceClassification, AdamW
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
-from classifier import remove_random_values
+from P_TA_main.classifier import remove_random_values
 
 
 def gpt2_loss_function(input_text, missing_slots, classifier, tokenizer, model):
