@@ -53,9 +53,9 @@
 # if __name__=="__main__":
 #     main()
 
-from great import *
-from classifier import *
-from gan import *
+from P_TA_main.great import *
+from P_TA_main.classifier import *
+from P_TA_main.gan import *
 import torch
 import pandas as pd
 from transformers import AutoTokenizer, AutoModelForCausalLM
