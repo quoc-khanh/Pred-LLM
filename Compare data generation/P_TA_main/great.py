@@ -3,7 +3,7 @@ import torch
 from sklearn.model_selection import train_test_split
 from transformers import AutoTokenizer, AutoModelForCausalLM, Trainer, TrainingArguments
 from datasets import Dataset, DatasetDict
-from utils import format_row
+from P_TA_main.utils import format_row
 
 
 class GreatTrainer(Trainer):
