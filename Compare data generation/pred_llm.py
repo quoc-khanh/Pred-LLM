@@ -64,7 +64,7 @@ test_size = float(args.testsize)
 gen_size = float(args.gensize)
 n_run = int(args.runs)
 
-llm_batch_size = 32
+llm_batch_size = 8
 llm_epochs = 50
 nn_batch_size = 512
 nn_epochs = 1000
