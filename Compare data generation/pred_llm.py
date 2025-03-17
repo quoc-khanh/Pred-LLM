@@ -19,7 +19,7 @@ from sklearn.model_selection import train_test_split
 
 ###GREAT
 from be_great import GReaT
-from P-TA-main.main import train_pipeline
+from P_TA_main.main import train_pipeline
 
 ###CTGAN COPULA_GAN TVAE 
 from sdv.single_table import CTGANSynthesizer
