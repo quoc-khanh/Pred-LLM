@@ -91,6 +91,6 @@ def train_pipeline(csv_path: str) -> pd.DataFrame:
     print("LLM Finetuning..")
     train_great(csv_path, save_path, save_path)
     print("Data Generating..")
-    df = classifier_train(csv_pth=csv_path, N=N, model_path=save_path, model_name=model_name, classifier_save_pth=classifier_save_path, write_csv=True)
+    df = classifier_train(csv_pth=csv_path, N=N, model_path=save_path, model_name=model_name, classifier_save_pth=classifier_save_path, write_csv=False)
     
     return df
