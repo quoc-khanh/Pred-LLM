@@ -150,7 +150,7 @@ for dataset in datasets:
                     # compute length of input sequence
                     encoded_text = _encode_row_partial(X_y_train_df.iloc[0], shuffle=False) #TODO
                     prompt_len = len(predllm.tokenizer(encoded_text)["input_ids"])
-                    X_y_train_new = predllm.sample_new(n_samples=n_generative, max_length=prompt_len, task="classification")
+                    X_y_train_new = predllm.sample_new(n_samples=n_generative, max_length=prompt_len+200, task="classification")
                     X_train_new = X_y_train_new.iloc[:, :-1].to_numpy(dtype=float).reshape(-1, n_feature)
                     y_train_new = X_y_train_new.iloc[:, -1:].to_numpy(dtype=float).reshape(-1, )
                     unique_values = np.unique(y_train_new)
@@ -290,6 +290,9 @@ for dataset in datasets:
             if n_class_generative != n_class:
                 print("generate less/more than the number of real classes")
                 acc_new = 0
+                recall_new = 0
+                f1_new = 0
+                auc_new = 0
             else:
                 xgb_new = XGBClassifier(random_state=run)
                 xgb_new.fit(X_train_new, y_train_new)
