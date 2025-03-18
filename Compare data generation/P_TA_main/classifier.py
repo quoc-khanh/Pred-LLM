@@ -138,7 +138,7 @@ def classifier_train(csv_pth="heloc.csv", N = 2, model_path="./gpt2_finetuned", 
                     dict[key].append(key_value)
         df = pd.DataFrame(dict)
         df.to_csv('output.csv', index=False)
-        return
+        return df
     
     real_texts = df["formatted_text"].tolist()
     generated_texts = df["repaired_text"].tolist()  
