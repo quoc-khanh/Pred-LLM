@@ -63,7 +63,7 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                 categorical_cols = []
                 target_col = "hospitaldischargestatus"
             train_df, _ = train_test_split(train_df,
-                                train_size=0.2,
+                                train_size=0.1,
                                 stratify=train_df[target_col],
                                 random_state=seed) #temporary, take too long to train
             # Extract features and target from both train and test
