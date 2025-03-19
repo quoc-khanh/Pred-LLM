@@ -127,18 +127,17 @@ for dataset in datasets:
             if method == "original":
                 X_train_new, y_train_new = X_train, y_train
             else:
-                X_y_train = np.append(X_train, y_train.reshape(-1, 1), axis=1)
-                X_y_train_df = pd.DataFrame(X_y_train)
-                X_y_train_df.columns = np.append(feature_names, "target")
-    
-                #make metadata for sdv models
-                metadata = Metadata.detect_from_dataframe(data=X_y_train_df,
-                                                                table_name=dataset
-                                                             )
+                # Combine training features and target using column_stack for better efficiency
+                X_y_train = np.column_stack((X_train, y_train))
+                X_y_train_df = pd.DataFrame(X_y_train, columns=np.append(feature_names, "target"))
                 
-                X_y_test = np.append(X_test, y_test.reshape(-1, 1), axis=1)
-                X_y_test_df = pd.DataFrame(X_y_test)
-                X_y_test_df.columns = np.append(feature_names, "target")
+                # Make metadata for sdv models
+                metadata = Metadata.detect_from_dataframe(data=X_y_train_df, table_name=dataset)
+                
+                # Combine testing features and target similarly
+                X_y_test = np.column_stack((X_test, y_test))
+                X_y_test_df = pd.DataFrame(X_y_test, columns=np.append(feature_names, "target"))
+
                 
                 if method == "pred_llm":
                     
