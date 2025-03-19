@@ -33,15 +33,31 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
             test_df = pd.read_csv(test_path)
             
             # Assume that a column named 'target' exists and the rest are features.
-            if 'target' not in train_df.columns:
-                raise ValueError("The training file must contain a 'target' column.")
-            target_col = 'target'
-            feature_cols = [col for col in train_df.columns if col != target_col]
-            
-            # Automatically determine numerical and categorical features
-            numerical_cols = train_df[feature_cols].select_dtypes(include=np.number).columns.tolist()
-            categorical_cols = [col for col in feature_cols if col not in numerical_cols]
-            
+            if dataset == "CML_Data":
+                numerical_cols = ['HR', 'DBP', 'RR', 'BT', 'Glucose']
+                categorical_cols = ['Dataset']
+                target_col = "target"
+            elif dataset == "MIMICIII_Grouped":
+                train_df, test_df = train_df.drop(columns = ['icustay_id']), test_df.drop(columns = ['icustay_id'])
+                df["label_death_icu"] = df["label_death_icu"].astype(int)
+                numerical_cols = ['heartrate', 'sysbp', 'diasbp', 'meanbp', 'resprate',
+       'tempc', 'spo2', 'albumin', 'bun', 'bilirubin', 'lactate',
+       'bicarbonate', 'bands', 'chloride', 'creatinine', 'glucose',
+       'hemoglobin', 'hematocrit', 'platelet', 'potassium', 'ptt', 'sodium',
+       'wbc']
+                categorical_cols = []
+                target_col = "label_death_icu"
+            elif dataset == "eiCU_tab_Processed":
+                train_df, test_df = train_df.drop(columns = ['patientunitstayid']), test_df.drop(columns = ['patientunitstayid'])
+                df["hospitaldischargestatus"] = df["hospitaldischargestatus"].astype(int)
+                numerical_cols = ['itemoffset', 'ethnicity', 'gender', 'GCS Total',
+       'Eyes', 'Motor', 'Verbal', 'admissionheight', 'admissionweight', 'age',
+       'Heart Rate', 'MAP (mmHg)', 'Invasive BP Diastolic',
+       'Invasive BP Systolic', 'O2 Saturation', 'Respiratory Rate',
+       'Temperature (C)', 'glucose', 'FiO2', 'pH', 'unitdischargeoffset']
+                categorical_cols = []
+                target_col = "hospitaldischargestatus"
+                
             # Extract features and target from both train and test
             X_train = train_df[feature_cols].copy()
             y_train = train_df[target_col].copy()
