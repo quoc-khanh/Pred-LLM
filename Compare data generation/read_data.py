@@ -19,7 +19,68 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
     df = None
 
     try:
+        #dealing with pre splited datasets
+        if dataset in ['CML_Data', 'eiCU_tab_Processed', 'MIMICIII_Grouped']: 
+            # Construct paths for the pre-split files
+            train_path = os.path.join(data_dir, dataset, "train.csv")
+            test_path = os.path.join(data_dir, dataset, "test.csv")
+            if not os.path.exists(train_path) or not os.path.exists(test_path):
+                raise FileNotFoundError(f"Train or test file not found in {os.path.join(data_dir, dataset)}")
+            print("Loading pre-split dataset from:")
+            print("  Train:", train_path)
+            print("  Test :", test_path)
+            train_df = pd.read_csv(train_path)
+            test_df = pd.read_csv(test_path)
             
+            # Assume that a column named 'target' exists and the rest are features.
+            if 'target' not in train_df.columns:
+                raise ValueError("The training file must contain a 'target' column.")
+            target_col = 'target'
+            feature_cols = [col for col in train_df.columns if col != target_col]
+            
+            # Automatically determine numerical and categorical features
+            numerical_cols = train_df[feature_cols].select_dtypes(include=np.number).columns.tolist()
+            categorical_cols = [col for col in feature_cols if col not in numerical_cols]
+            
+            # Extract features and target from both train and test
+            X_train = train_df[feature_cols].copy()
+            y_train = train_df[target_col].copy()
+            X_test = test_df[feature_cols].copy()
+            y_test = test_df[target_col].copy()
+            
+            # Encode categorical features for both sets
+            for col in categorical_cols:
+                le = LabelEncoder()
+                X_train[col] = le.fit_transform(X_train[col])
+                X_test[col] = le.transform(X_test[col])
+            
+            # Normalize numerical features if requested (fit only on training data)
+            if normalize_x and numerical_cols:
+                print("Normalizing numerical features based on training data.")
+                scaler = MinMaxScaler()
+                X_train[numerical_cols] = scaler.fit_transform(X_train[numerical_cols])
+                X_test[numerical_cols] = scaler.transform(X_test[numerical_cols])
+                X_train[numerical_cols] = np.around(X_train[numerical_cols], 2)
+                X_test[numerical_cols] = np.around(X_test[numerical_cols], 2)
+            else:
+                print("Not normalizing numerical features.")
+            
+            # Encode the target variable
+            y_train = LabelEncoder().fit_transform(y_train)
+            y_test = LabelEncoder().fit_transform(y_test)
+            
+            names = feature_cols
+            n_train = X_train.shape[0]
+            n_test = X_test.shape[0]
+            n_feature = X_train.shape[1]
+            n_class = len(np.unique(y_train))
+            
+            print("X_train: {}, y_train: {}".format(X_train.shape, y_train.shape))
+            print("X_test: {}, y_test: {}".format(X_test.shape, y_test.shape))
+            print("n_train: {}, n_test: {}, n_feature: {}, n_class: {}".format(n_train, n_test, n_feature, n_class))
+            print("feature_names: {}".format(names))
+            
+            return X_train.values, y_train, X_test.values, y_test, n_train, n_test, n_feature, n_class, names
         ###
         if dataset == 'california':
             df = fetch_california_housing(as_frame=True).frame
