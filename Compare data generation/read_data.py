@@ -38,23 +38,28 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                 categorical_cols = ['Dataset']
                 target_col = "target"
             elif dataset == "MIMICIII_Grouped":
-                train_df, test_df = train_df.drop(columns = ['icustay_id']), test_df.drop(columns = ['icustay_id'])
-                df["label_death_icu"] = df["label_death_icu"].astype(int)
+                train_df = train_df.drop(columns=['icustay_id'])
+                test_df = test_df.drop(columns=['icustay_id'])
+                # Convert target column type for both train and test DataFrames
+                train_df["label_death_icu"] = train_df["label_death_icu"].astype(int)
+                test_df["label_death_icu"] = test_df["label_death_icu"].astype(int)
                 numerical_cols = ['heartrate', 'sysbp', 'diasbp', 'meanbp', 'resprate',
-       'tempc', 'spo2', 'albumin', 'bun', 'bilirubin', 'lactate',
-       'bicarbonate', 'bands', 'chloride', 'creatinine', 'glucose',
-       'hemoglobin', 'hematocrit', 'platelet', 'potassium', 'ptt', 'sodium',
-       'wbc']
+                                  'tempc', 'spo2', 'albumin', 'bun', 'bilirubin', 'lactate',
+                                  'bicarbonate', 'bands', 'chloride', 'creatinine', 'glucose',
+                                  'hemoglobin', 'hematocrit', 'platelet', 'potassium', 'ptt', 'sodium',
+                                  'wbc']
                 categorical_cols = []
                 target_col = "label_death_icu"
             elif dataset == "eiCU_tab_Processed":
-                train_df, test_df = train_df.drop(columns = ['patientunitstayid']), test_df.drop(columns = ['patientunitstayid'])
-                df["hospitaldischargestatus"] = df["hospitaldischargestatus"].astype(int)
+                train_df = train_df.drop(columns=['patientunitstayid'])
+                test_df = test_df.drop(columns=['patientunitstayid'])
+                train_df["hospitaldischargestatus"] = train_df["hospitaldischargestatus"].astype(int)
+                test_df["hospitaldischargestatus"] = test_df["hospitaldischargestatus"].astype(int)
                 numerical_cols = ['itemoffset', 'ethnicity', 'gender', 'GCS Total',
-       'Eyes', 'Motor', 'Verbal', 'admissionheight', 'admissionweight', 'age',
-       'Heart Rate', 'MAP (mmHg)', 'Invasive BP Diastolic',
-       'Invasive BP Systolic', 'O2 Saturation', 'Respiratory Rate',
-       'Temperature (C)', 'glucose', 'FiO2', 'pH', 'unitdischargeoffset']
+                                  'Eyes', 'Motor', 'Verbal', 'admissionheight', 'admissionweight', 'age',
+                                  'Heart Rate', 'MAP (mmHg)', 'Invasive BP Diastolic',
+                                  'Invasive BP Systolic', 'O2 Saturation', 'Respiratory Rate',
+                                  'Temperature (C)', 'glucose', 'FiO2', 'pH', 'unitdischargeoffset']
                 categorical_cols = []
                 target_col = "hospitaldischargestatus"
             
