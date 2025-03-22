@@ -278,56 +278,71 @@ for dataset in datasets:
                 np.save(f, X_train_new)
             with open("./results/_classification/{}/y_gen_{}.npz".format(method, file_name), "wb") as f:
                 np.save(f, y_train_new)
-                
-            ###TODO 10/1 save the syn+ori dataset
-      
-            ###
 
+            ###TODO 10/1 save the syn+ori dataset
+            
             # get number of generative classes
             n_class_generative = len(np.unique(y_train_new))
-            # train a classifier
+            # train a classifier using 5-fold CV with additional precision metric and custom AUC scorer
             if n_class_generative != n_class:
                 print("generate less/more than the number of real classes")
                 acc_new = 0
+                precision_new = 0
                 recall_new = 0
                 f1_new = 0
                 auc_new = 0
             else:
+                from sklearn.model_selection import StratifiedKFold, cross_validate
+                from sklearn.metrics import make_scorer, roc_auc_score
+                
+                # Custom AUC function to handle binary and multi-class cases
+                def custom_auc(y_true, y_proba):
+                    classes = np.unique(y_true)
+                    if len(classes) == 2:
+                        return roc_auc_score(y_true, y_proba[:, 1])
+                    else:
+                        return roc_auc_score(y_true, y_proba, multi_class='ovr')
+                
+                auc_scorer = make_scorer(custom_auc, needs_proba=True)
+                scoring = {
+                    'accuracy': 'accuracy',
+                    'precision': 'precision_macro',
+                    'recall': 'recall_macro',
+                    'f1': 'f1_macro',
+                    'auc': auc_scorer
+                }
+                
+                skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=run)
                 xgb_new = XGBClassifier(random_state=run)
-                xgb_new.fit(X_train_new, y_train_new)
-                y_pred = xgb_new.predict(X_test)
-                acc_new = round(accuracy_score(y_test, y_pred), 4)
-                recall_new = round(recall_score(y_test, y_pred, average='macro'), 4)
-                f1_new = round(f1_score(y_test, y_pred, average='macro'), 4)
-                y_pred_proba = xgb_new.predict_proba(X_test)
-                n_classes = len(np.unique(y_test))
-
-                if n_classes == 2:  # Bài toán nhị phân
-                    y_pred_prob = y_pred_proba[:, 1]  # Xác suất của lớp dương
-                    auc_new = round(roc_auc_score(y_test, y_pred_prob), 4)
-                else:  # Bài toán đa lớp
-                    auc_new = round(roc_auc_score(y_test, y_pred_proba, multi_class='ovr'), 4)
-                # Print and log
+                cv_results = cross_validate(xgb_new, X_train_new, y_train_new, cv=skf, scoring=scoring, return_train_score=False)
+                
+                acc_new = round(np.mean(cv_results['test_accuracy']), 4)
+                precision_new = round(np.mean(cv_results['test_precision']), 4)
+                recall_new = round(np.mean(cv_results['test_recall']), 4)
+                f1_new = round(np.mean(cv_results['test_f1']), 4)
+                auc_new = round(np.mean(cv_results['test_auc']), 4)
+                
                 log_message = (
-                      "dataset: {}, method: {}, run: {}, accuracy: {}, recall: {}, f1: {}, auc: {}"
-                      .format(dataset, method, run, acc_new, recall_new, f1_new, auc_new)
-                  )
-                  
-                  # Print to console
+                    "dataset: {}, method: {}, run: {}, accuracy: {}, precision: {}, recall: {}, f1: {}, auc: {}"
+                    .format(dataset, method, run, acc_new, precision_new, recall_new, f1_new, auc_new)
+                )
                 print(log_message)
-                  
-                  # Write to log file
                 logging.info(log_message)
-            # save metrics of each run of each method for each train_size in each dataset
+            
+            # save metrics for this run
             xgb_run[run] = acc_new
+            precision_run[run] = precision_new
             recall_run[run] = recall_new
             f1_run[run] = f1_new 
             auc_run[run] = auc_new
-            # save result to text file 
+            
+            # save result to text file at final run
             if run == (n_run - 1):
                 with open('./results/_classification/{}/metrics_{}.txt'.format(method, file_name), 'w') as f:
                     acc_avg = round(np.mean(xgb_run), 4)
                     acc_std = round(np.std(xgb_run), 4)
+                    precision_avg = round(np.mean(precision_run), 4)
+                    precision_std = round(np.std(precision_run), 4)
                     recall_avg = round(np.mean(recall_run), 4)
                     recall_std = round(np.std(recall_run), 4)
                     f1_avg = round(np.mean(f1_run), 4)
@@ -340,32 +355,133 @@ for dataset in datasets:
                     
                     f.write("Metrics for Generated Model:\n")
                     f.write("Accuracy: {}\n".format(acc_new))
+                    f.write("Precision (macro): {}\n".format(precision_new))
                     f.write("Recall (macro): {}\n".format(recall_new))
                     f.write("F1 Score (macro): {}\n".format(f1_new))
                     f.write("ROC AUC (ovr): {}\n\n".format(auc_new))
                     
                     f.write("Average Metrics Across Runs:\n")
                     f.write("Accuracy: {} (±{})\n".format(acc_avg, acc_std))
+                    f.write("Precision: {} (±{})\n".format(precision_avg, precision_std))
                     f.write("Recall: {} (±{})\n".format(recall_avg, recall_std))
                     f.write("F1 Score: {} (±{})\n".format(f1_avg, f1_std))
                     f.write("ROC AUC: {} (±{})\n".format(auc_avg, auc_std))
-        # save metrics of n_run of each method in each dataset
-        xgb_method_run.append(xgb_run)
-        recall_method_run.append(recall_run)
-        f1_method_run.append(f1_run)
-        auc_method_run.append(auc_run)
-    # save metrics of n_run of all methods in each dataset  
-    xgb_dataset_method_run.append(xgb_method_run)
-    recall_dataset_method_run.append(recall_method_run)
-    f1_dataset_method_run.append(f1_method_run)
-    auc_dataset_method_run.append(auc_method_run)
 
-# save all results to csv file
-n_dataset = len(datasets)
-n_method = len(methods)
-file_result = './results/_classification/metrics_ds{}_me{}_tr{}_te{}_ge{}'.\
-    format(dataset_input, method_input, train_size, test_size, gen_size)
-# with open(file_result + ".csv", 'w') as f: #TODO
+
+            ###TODO 10/1 save the syn+ori dataset
+      
+            ###
+
+#             # get number of generative classes
+#             n_class_generative = len(np.unique(y_train_new))
+#             # train a classifier
+#             if n_class_generative != n_class:
+#                 print("generate less/more than the number of real classes")
+#                 acc_new = 0
+#                 recall_new = 0
+#                 f1_new = 0
+#                 auc_new = 0
+#             else:
+#                 xgb_new = XGBClassifier(random_state=run)
+#                 xgb_new.fit(X_train_new, y_train_new)
+#                 y_pred = xgb_new.predict(X_test)
+#                 acc_new = round(accuracy_score(y_test, y_pred), 4)
+#                 recall_new = round(recall_score(y_test, y_pred, average='macro'), 4)
+#                 f1_new = round(f1_score(y_test, y_pred, average='macro'), 4)
+#                 y_pred_proba = xgb_new.predict_proba(X_test)
+#                 n_classes = len(np.unique(y_test))
+
+#                 if n_classes == 2:  # Bài toán nhị phân
+#                     y_pred_prob = y_pred_proba[:, 1]  # Xác suất của lớp dương
+#                     auc_new = round(roc_auc_score(y_test, y_pred_prob), 4)
+#                 else:  # Bài toán đa lớp
+#                     auc_new = round(roc_auc_score(y_test, y_pred_proba, multi_class='ovr'), 4)
+#                 # Print and log
+#                 log_message = (
+#                       "dataset: {}, method: {}, run: {}, accuracy: {}, recall: {}, f1: {}, auc: {}"
+#                       .format(dataset, method, run, acc_new, recall_new, f1_new, auc_new)
+#                   )
+                  
+#                   # Print to console
+#                 print(log_message)
+                  
+#                   # Write to log file
+#                 logging.info(log_message)
+#             # save metrics of each run of each method for each train_size in each dataset
+#             xgb_run[run] = acc_new
+#             recall_run[run] = recall_new
+#             f1_run[run] = f1_new 
+#             auc_run[run] = auc_new
+#             # save result to text file 
+#             if run == (n_run - 1):
+#                 with open('./results/_classification/{}/metrics_{}.txt'.format(method, file_name), 'w') as f:
+#                     acc_avg = round(np.mean(xgb_run), 4)
+#                     acc_std = round(np.std(xgb_run), 4)
+#                     recall_avg = round(np.mean(recall_run), 4)
+#                     recall_std = round(np.std(recall_run), 4)
+#                     f1_avg = round(np.mean(f1_run), 4)
+#                     f1_std = round(np.std(f1_run), 4)
+#                     auc_avg = round(np.mean(auc_run), 4)
+#                     auc_std = round(np.std(auc_run), 4)
+                    
+#                     f.write("Metrics for Original Model:\n")
+#                     f.write("Accuracy: {}\n\n".format(acc_org))
+                    
+#                     f.write("Metrics for Generated Model:\n")
+#                     f.write("Accuracy: {}\n".format(acc_new))
+#                     f.write("Recall (macro): {}\n".format(recall_new))
+#                     f.write("F1 Score (macro): {}\n".format(f1_new))
+#                     f.write("ROC AUC (ovr): {}\n\n".format(auc_new))
+                    
+#                     f.write("Average Metrics Across Runs:\n")
+#                     f.write("Accuracy: {} (±{})\n".format(acc_avg, acc_std))
+#                     f.write("Recall: {} (±{})\n".format(recall_avg, recall_std))
+#                     f.write("F1 Score: {} (±{})\n".format(f1_avg, f1_std))
+#                     f.write("ROC AUC: {} (±{})\n".format(auc_avg, auc_std))
+#         # save metrics of n_run of each method in each dataset
+#         xgb_method_run.append(xgb_run)
+#         recall_method_run.append(recall_run)
+#         f1_method_run.append(f1_run)
+#         auc_method_run.append(auc_run)
+#     # save metrics of n_run of all methods in each dataset  
+#     xgb_dataset_method_run.append(xgb_method_run)
+#     recall_dataset_method_run.append(recall_method_run)
+#     f1_dataset_method_run.append(f1_method_run)
+#     auc_dataset_method_run.append(auc_method_run)
+
+# # save all results to csv file
+# n_dataset = len(datasets)
+# n_method = len(methods)
+# file_result = './results/_classification/metrics_ds{}_me{}_tr{}_te{}_ge{}'.\
+#     format(dataset_input, method_input, train_size, test_size, gen_size)
+# # with open(file_result + ".csv", 'w') as f: #TODO
+# #     f.write("dataset,method,classifier,train_size,test_size,gen_size,run,accuracy,recall,f1,auc\n")
+# #     for data_id in range(n_dataset):
+# #         for method_id in range(n_method):
+# #             for run_id in range(n_run):
+# #                 dataset_name = datasets[data_id]
+# #                 method_name = methods[method_id]
+# #                 classifier = "xgb"
+# #                 xgb_new = XGBClassifier(random_state=run_id)
+# #                 xgb_new.fit(X_train_new, y_train_new)
+# #                 y_pred = xgb_new.predict(X_test)
+# #                 acc = round(accuracy_score(y_test, y_pred), 4)
+# #                 recall = round(recall_score(y_test, y_pred, average='macro'), 4)
+# #                 f1 = round(f1_score(y_test, y_pred, average='macro'), 4)
+# #                 y_pred_proba = xgb_new.predict_proba(X_test)
+# #                 n_classes = len(np.unique(y_test))
+
+# #                 if n_classes == 2:  # Bài toán nhị phân
+# #                     y_pred_prob = y_pred_proba[:, 1]  # Xác suất của lớp dương
+# #                     auc = round(roc_auc_score(y_test, y_pred_prob), 4)
+# #                 else:  # Bài toán đa lớp
+# #                     auc = round(roc_auc_score(y_test, y_pred_proba, multi_class='ovr'), 4)
+# #                 line = dataset_name + "," + method_name + "," + classifier + "," + \
+# #                        str(train_size) + "," + str(test_size) + "," + str(gen_size) + "," + \
+# #                        str(run_id) + "," + str(acc) + "," + str(recall) + "," + \
+# #                        str(f1) + "," + str(auc) + "\n"
+# #                 f.write(line)
+# with open(file_result + ".csv", 'w') as f:
 #     f.write("dataset,method,classifier,train_size,test_size,gen_size,run,accuracy,recall,f1,auc\n")
 #     for data_id in range(n_dataset):
 #         for method_id in range(n_method):
@@ -373,63 +489,38 @@ file_result = './results/_classification/metrics_ds{}_me{}_tr{}_te{}_ge{}'.\
 #                 dataset_name = datasets[data_id]
 #                 method_name = methods[method_id]
 #                 classifier = "xgb"
-#                 xgb_new = XGBClassifier(random_state=run_id)
-#                 xgb_new.fit(X_train_new, y_train_new)
-#                 y_pred = xgb_new.predict(X_test)
-#                 acc = round(accuracy_score(y_test, y_pred), 4)
-#                 recall = round(recall_score(y_test, y_pred, average='macro'), 4)
-#                 f1 = round(f1_score(y_test, y_pred, average='macro'), 4)
-#                 y_pred_proba = xgb_new.predict_proba(X_test)
-#                 n_classes = len(np.unique(y_test))
-
-#                 if n_classes == 2:  # Bài toán nhị phân
-#                     y_pred_prob = y_pred_proba[:, 1]  # Xác suất của lớp dương
-#                     auc = round(roc_auc_score(y_test, y_pred_prob), 4)
-#                 else:  # Bài toán đa lớp
-#                     auc = round(roc_auc_score(y_test, y_pred_proba, multi_class='ovr'), 4)
-#                 line = dataset_name + "," + method_name + "," + classifier + "," + \
-#                        str(train_size) + "," + str(test_size) + "," + str(gen_size) + "," + \
-#                        str(run_id) + "," + str(acc) + "," + str(recall) + "," + \
-#                        str(f1) + "," + str(auc) + "\n"
+#                 acc = xgb_dataset_method_run[data_id][method_id][run_id]
+#                 recall = recall_dataset_method_run[data_id][method_id][run_id]
+#                 f1 = f1_dataset_method_run[data_id][method_id][run_id]
+#                 auc = auc_dataset_method_run[data_id][method_id][run_id]
+#                 line = f"{dataset_name},{method_name},{classifier},{train_size},{test_size},{gen_size},{run_id},{acc},{recall},{f1},{auc}\n"
 #                 f.write(line)
-with open(file_result + ".csv", 'w') as f:
-    f.write("dataset,method,classifier,train_size,test_size,gen_size,run,accuracy,recall,f1,auc\n")
-    for data_id in range(n_dataset):
-        for method_id in range(n_method):
-            for run_id in range(n_run):
-                dataset_name = datasets[data_id]
-                method_name = methods[method_id]
-                classifier = "xgb"
-                acc = xgb_dataset_method_run[data_id][method_id][run_id]
-                recall = recall_dataset_method_run[data_id][method_id][run_id]
-                f1 = f1_dataset_method_run[data_id][method_id][run_id]
-                auc = auc_dataset_method_run[data_id][method_id][run_id]
-                line = f"{dataset_name},{method_name},{classifier},{train_size},{test_size},{gen_size},{run_id},{acc},{recall},{f1},{auc}\n"
-                f.write(line)
-            acc_avg = round(np.mean(xgb_dataset_method_run), 4)
-            acc_std = round(np.std(xgb_dataset_method_run), 4)
-            recall_avg = round(np.mean(recall_dataset_method_run), 4)
-            recall_std = round(np.std(recall_dataset_method_run), 4)
-            f1_avg = round(np.mean(f1_dataset_method_run), 4)
-            f1_std = round(np.std(f1_dataset_method_run), 4)
-            auc_avg = round(np.mean(auc_dataset_method_run), 4)
-            auc_std = round(np.std(auc_dataset_method_run), 4)
-            run_id = 'avg'
-            line = f"{dataset_name},{method_name},{classifier},{train_size},{test_size},{gen_size},{run_id},{acc_avg},{recall_avg},{f1_avg},{auc_avg}\n"
-            f.write(line)
+#             acc_avg = round(np.mean(xgb_dataset_method_run), 4)
+#             acc_std = round(np.std(xgb_dataset_method_run), 4)
+#             recall_avg = round(np.mean(recall_dataset_method_run), 4)
+#             recall_std = round(np.std(recall_dataset_method_run), 4)
+#             f1_avg = round(np.mean(f1_dataset_method_run), 4)
+#             f1_std = round(np.std(f1_dataset_method_run), 4)
+#             auc_avg = round(np.mean(auc_dataset_method_run), 4)
+#             auc_std = round(np.std(auc_dataset_method_run), 4)
+#             run_id = 'avg'
+#             line = f"{dataset_name},{method_name},{classifier},{train_size},{test_size},{gen_size},{run_id},{acc_avg},{recall_avg},{f1_avg},{auc_avg}\n"
+#             f.write(line)
 
-# save metrics of all datasets to text file 
-with open(file_result + ".txt", 'w') as f:
-    acc_avg = round(np.mean(xgb_dataset_method_run), 4)
-    acc_std = round(np.std(xgb_dataset_method_run), 4)
-    recall_avg = round(np.mean(recall_dataset_method_run), 4)
-    recall_std = round(np.std(recall_dataset_method_run), 4)
-    f1_avg = round(np.mean(f1_dataset_method_run), 4)
-    f1_std = round(np.std(f1_dataset_method_run), 4)
-    auc_avg = round(np.mean(auc_dataset_method_run), 4)
-    auc_std = round(np.std(auc_dataset_method_run), 4)
-    f.write("Metrics Summary:\n")
-    f.write("Accuracy: {} (±{})\n".format(acc_avg, acc_std))
-    f.write("Recall: {} (±{})\n".format(recall_avg, recall_std))
-    f.write("F1 Score: {} (±{})\n".format(f1_avg, f1_std))
-    f.write("ROC AUC: {} (±{})\n".format(auc_avg, auc_std))
+# # save metrics of all datasets to text file 
+# with open(file_result + ".txt", 'w') as f:
+#     acc_avg = round(np.mean(xgb_dataset_method_run), 4)
+#     acc_std = round(np.std(xgb_dataset_method_run), 4)
+#     recall_avg = round(np.mean(recall_dataset_method_run), 4)
+#     recall_std = round(np.std(recall_dataset_method_run), 4)
+#     f1_avg = round(np.mean(f1_dataset_method_run), 4)
+#     f1_std = round(np.std(f1_dataset_method_run), 4)
+#     auc_avg = round(np.mean(auc_dataset_method_run), 4)
+#     auc_std = round(np.std(auc_dataset_method_run), 4)
+#     f.write("Metrics Summary:\n")
+#     f.write("Accuracy: {} (±{})\n".format(acc_avg, acc_std))
+#     f.write("Recall: {} (±{})\n".format(recall_avg, recall_std))
+#     f.write("F1 Score: {} (±{})\n".format(f1_avg, f1_std))
+#     f.write("ROC AUC: {} (±{})\n".format(auc_avg, auc_std))
+
+
