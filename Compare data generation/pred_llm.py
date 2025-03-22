@@ -96,6 +96,7 @@ print("methods: {}".format(methods))
 
 xgb_dataset_method_run = []
 recall_dataset_method_run = []
+precision_dataset_method_run = []
 f1_dataset_method_run = []
 auc_dataset_method_run = []
 for dataset in datasets:
