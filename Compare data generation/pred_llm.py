@@ -261,10 +261,17 @@ for dataset in datasets:
                                                 )
                     synthesizer.fit(X_y_train_df)
                     X_y_train_new = synthesizer.sample(num_rows=n_generative)
-                
+
                 X_train_new = X_y_train_new.iloc[:, :-1].to_numpy(dtype=float).reshape(-1, n_feature)
                 y_train_new = X_y_train_new.iloc[:, -1:].to_numpy(dtype=float).reshape(-1, )
                 X_y_train_new.columns = X_y_train_df.columns
+                
+                file_ori = "./results/_classification/{}/ds{}_ORI_tr{}_te{}_ge{}".format(method, dataset, train_size, test_size, gen_size)#, "wb"#"ds{}_ORI_tr{}_te{}_ge{}".format(dataset, train_size, test_size, gen_size)
+                if not os.path.exists(file_ori + ".csv"):
+                    X_y_train_df.to_csv(file_ori + ".csv", index=False)
+                file_result = "./results/_classification/{}/ds{}_ORI_tr{}_te{}_ge{}_run{}".format(method, dataset, train_size, test_size, gen_size, run)#"ds{}_NEW_tr{}_te{}_ge{}_run{}".format(dataset, train_size, test_size, gen_size, run)
+                X_y_train_new.to_csv(file_result + ".csv", index=False)
+                
                 unique_values = np.unique(y_train_new)
                 print(f"Unique values in y_train_new: {unique_values}")
                 print(f"Number of unique values: {len(unique_values)}")
