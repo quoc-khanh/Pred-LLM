@@ -315,7 +315,7 @@ for dataset in datasets:
                 auc_new = 0
             else:                
                 # Custom AUC function to handle binary and multi-class cases
-                def custom_auc(y_true, y_proba):
+                def custom_auc(y_true, y_proba, **kwargs):
                     classes = np.unique(y_true)
                     if len(classes) == 2:
                         return roc_auc_score(y_true, y_proba[:, 1])
