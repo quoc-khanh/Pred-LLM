@@ -62,6 +62,14 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                                   'Temperature (C)', 'glucose', 'FiO2', 'pH', 'unitdischargeoffset']
                 categorical_cols = []
                 target_col = "hospitaldischargestatus"
+            elif dataset == "Tab_Data":
+                train_df = train_df.drop(columns=['caseid'])
+                test_df = test_df.drop(columns=['caseid'])
+                # train_df["hospitaldischargestatus"] = train_df["hospitaldischargestatus"].astype(int)
+                # test_df["hospitaldischargestatus"] = test_df["hospitaldischargestatus"].astype(int)
+                numerical_cols = ['age', 'preop_hb', 'preop_alb', 'preop_ast', 'preop_cr', 'asa']
+                categorical_cols = ['sex', 'department', 'optype', 'approach']
+                target_col = "death_inhosp"
             train_df, _ = train_test_split(train_df,
                                 train_size=0.1,
                                 stratify=train_df[target_col],
@@ -127,7 +135,7 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
             target_col = 'target'
         # File-based datasets
         elif dataset in ["german_credit","credit_card_fraud" , "adult", "compas", "bank", "home_credit", "lending_club", "paysim", "ieee_cis", "churn", 
-                         "credit", "travel", "king", "heloc", "modified_admissions", "data01"]:
+                         "credit", "travel", "king", "heloc", "modified_admissions", "data01", "heart"]:
             file_path = os.path.join(data_dir, f"{dataset}.csv")
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"File not found: {file_path}. Please download the dataset.")
@@ -279,6 +287,11 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
        'Lactic acid', 'PCO2', 'EF']
                 target_col = 'group'
                 df["group"] = df["group"].replace({1: 0, 2: 1})
+            elif dataset == "heart":
+                categorical_cols = ['sex', 'cp', 'fbs', 'restecg', 'exang', 'slope', 'ca', 'thal']
+                numerical_cols =  ['age', 'trestbps', 'chol', 'thalach', 'oldpeak']
+                target_col = 'target'
+                # df["group"] = df["group"].replace({1: 0, 2: 1})
             else:
                 raise ValueError(f"No configuration for dataset: {dataset}")
 
