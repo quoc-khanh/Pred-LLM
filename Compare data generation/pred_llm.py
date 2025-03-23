@@ -22,6 +22,7 @@ from sklearn.model_selection import train_test_split
 ###GREAT
 from be_great import GReaT
 from P_TA_main.main import train_pipeline
+from DPO.main import train_dpo
 
 ###CTGAN COPULA_GAN TVAE 
 from sdv.single_table import CTGANSynthesizer
@@ -184,6 +185,14 @@ for dataset in datasets:
                     # with open("./results/_classification/{}/y_gen_ORI_{}.npz".format(method, file_name), "wb") as f:
                     #     np.save(f, y_train_new_ORI)
                 if method == "great_dpo":          
+                    # Tạo một file CSV tạm thời. delete=False để file không bị xóa khi đóng.
+                    tmp_file = tempfile.NamedTemporaryFile(suffix=".csv", delete=False)
+                    csv_path = tmp_file.name  # Lấy đường dẫn trước khi đóng file
+                    tmp_file.close()  # Đóng file để tránh lỗi khi ghi dữ liệu
+                
+                    X_y_train_df.to_csv(csv_path, index=False)  # Ghi DataFrame vào file CSV
+                    X_y_train_new = train_dpo(csv_path = csv_path)
+                if method == "great_ppo":          
                     # Tạo một file CSV tạm thời. delete=False để file không bị xóa khi đóng.
                     tmp_file = tempfile.NamedTemporaryFile(suffix=".csv", delete=False)
                     csv_path = tmp_file.name  # Lấy đường dẫn trước khi đóng file
