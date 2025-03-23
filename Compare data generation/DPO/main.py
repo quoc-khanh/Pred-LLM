@@ -9,6 +9,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 import sys, os
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'P_TA_main'))
+os.environ["CUDA_LAUNCH_BLOCKING"] = "1"
 from P_TA_main.great import *
 from P_TA_main.classifier import *
 from P_TA_main.gan import *
@@ -22,9 +23,9 @@ def compute_generated_log_prob(prompt, generated, model, tokenizer):
     It does this by computing the loss (negative log likelihood) on the generated tokens only.
     """
     full_text = prompt + " " + generated
-    inputs = tokenizer(full_text, return_tensors="pt").to(model.device)
+    inputs = tokenizer(full_text, return_tensors="pt", truncation=True).to(model.device)
 
-    prompt_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(model.device)
+    prompt_ids = tokenizer(prompt, return_tensors="pt", truncation=True).input_ids.to(model.device)
     prompt_length = prompt_ids.size(1)
 
     labels = inputs.input_ids.clone()
@@ -74,7 +75,7 @@ def train_gpt2_with_dpo(df, model, ref_model, tokenizer, classifier, num_epochs=
             corrupted_text, missing_slots = remove_random_values(input_text, num_remove=N)
             prompt = corrupted_text
 
-            input_ids = tokenizer(prompt, return_tensors="pt").input_ids.to(model.device)
+            input_ids = tokenizer(prompt, return_tensors="pt", truncation=True).input_ids.to(model.device)
 
             output_candidate1 = model.generate(
                 input_ids,
