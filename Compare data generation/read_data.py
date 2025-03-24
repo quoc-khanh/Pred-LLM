@@ -361,11 +361,11 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                 y_train = y
                 X_test = None
                 y_test = None
-            else:
-                X, y = train_test_split(X,
-                    train_size=0.1,
-                    stratify=y,
-                    random_state=seed) #temporary, take too long to train
+            # else:
+            #     X, y = train_test_split(X,
+            #         train_size=0.1,
+            #         stratify=y,
+            #         random_state=seed) #temporary, take too long to train
                 if dataset in ["fred", "yahoo_finance", "king", "california"]:  # regression tasks
                     y = y.reshape(-1, 1)
                     X_train_, X_test, y_train_, y_test = train_test_split(X, y, test_size=test_size, shuffle=True, random_state=seed)
