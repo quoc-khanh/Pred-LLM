@@ -1,7 +1,8 @@
 import torch
 import random
 import pandas as pd
-from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForSequenceClassification, AdamW
+from transformers import AutoTokenizer, AutoModelForCausalLM, AutoModelForSequenceClassification #, AdamW
+from torch.optim import AdamW
 import torch.nn as nn
 from torch.utils.data import DataLoader, Dataset
 from P_TA_main.utils import format_row
