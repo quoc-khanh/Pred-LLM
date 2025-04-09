@@ -129,7 +129,7 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
             categorical_cols = []
             target_col = "A15"
         elif dataset == 'iris': 
-            df = datasets.load_iris(as_frame=True).frame.head(10)#for fast test
+            df = datasets.load_iris(as_frame=True).frame.head(100)#for fast test
             numerical_cols = ['sepal length (cm)', 'sepal width (cm)', 'petal length (cm)', 'petal width (cm)']
             categorical_cols = []
             target_col = 'target'
