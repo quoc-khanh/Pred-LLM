@@ -430,6 +430,12 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
                     )
                 else:  # train_size == 1.0
                     X_train, y_train = X_train_, y_train_
+
+                        # **HERE**: make sure n_test is always defined
+            if X_test is not None:
+                n_test = X_test.shape[0]
+            else:
+                n_test = None
         
             # …now X_train, y_train (and possibly X_test, y_test) are always defined
             n_train, n_feature = X_train.shape
