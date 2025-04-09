@@ -328,7 +328,9 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
             for col in categorical_cols:
                 le = LabelEncoder()
                 X = np.hstack((X, le.fit_transform(df[col]).reshape(-1, 1)))
-            y = LabelEncoder().fit_transform(df[target_col])
+                
+            # y = LabelEncoder().fit_transform(df[target_col])
+            y = df[target_col]
             # Convert y to a pandas Series TODO
             y_series = pd.Series(y)
             
