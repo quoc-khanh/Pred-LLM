@@ -355,43 +355,93 @@ def gen_train_test_data(dataset="", train_size=1.0, test_size=0.2, normalize_x=T
         else:
             print("don't normalize X")
 
-        # Split the dataset into train and test sets
+        # # Split the dataset into train and test sets
+        # if X is not None and y is not None:
+        #     if train_size == 2.0: #2 mean no split
+        #         y = np.array(y)
+        #         X_train = X
+        #         y_train = y
+        #         X_test = None
+        #         y_test = None
+        #     # else:
+        #     #     X, y = train_test_split(X,
+        #     #         train_size=0.1,
+        #     #         stratify=y,
+        #     #         random_state=seed) #temporary, take too long to train
+        #         if dataset in ["fred", "yahoo_finance", "king", "california"]:  # regression tasks
+        #             y = y.reshape(-1, 1)
+        #             X_train_, X_test, y_train_, y_test = train_test_split(X, y, test_size=test_size, shuffle=True, random_state=seed)
+        #         else:  # classification tasks
+        #             X_train_, X_test, y_train_, y_test = train_test_split(X, y, test_size=test_size, shuffle=True, stratify=y, random_state=seed)
+
+        #     # Further split the training set if train_size < 1.0
+        #     if train_size < 1.0:
+        #         X_train, _, y_train, _ = train_test_split(X_train_, y_train_, test_size=(1.0 - train_size), shuffle=True, stratify=y_train_, random_state=seed)
+        #     elif train_size == 1.0:
+        #         X_train, y_train = X_train_, y_train_
+
+        #     # Summary
+        #     n_train, n_feature, n_class = X_train.shape[0], X_train.shape[1], len(np.unique(y_train))
+        #     print("X_train: {}, y_train: {}".format(X_train.shape, y_train.shape))
+        #     if X_test is not None:
+        #         n_test = X_test.shape[0]
+        #         print("X_test: {}, y_test: {}".format(X_test.shape, y_test.shape))
+        #     else: n_test = None
+        #     print("n_train: {}, n_test: {}, n_feature: {}, n_class: {}".format(n_train, n_test, n_feature, n_class))
+        #     print("feature_names: {}".format(names))
+
+        #     return X_train, y_train, X_test, y_test, n_train, n_test, n_feature, n_class, names
+
         if X is not None and y is not None:
-            if train_size == 2.0: #2 mean no split
+            if train_size == 2.0:  # 2.0 means “no split”
+                # No split: use all data for training
                 y = np.array(y)
-                X_train = X
-                y_train = y
-                X_test = None
-                y_test = None
-            # else:
-            #     X, y = train_test_split(X,
-            #         train_size=0.1,
-            #         stratify=y,
-            #         random_state=seed) #temporary, take too long to train
-                if dataset in ["fred", "yahoo_finance", "king", "california"]:  # regression tasks
+                X_train, y_train = X, y
+                X_test, y_test = None, None
+            else:
+                # Split into train/test
+                if dataset in ["fred", "yahoo_finance", "king", "california"]:
+                    # regression task
                     y = y.reshape(-1, 1)
-                    X_train_, X_test, y_train_, y_test = train_test_split(X, y, test_size=test_size, shuffle=True, random_state=seed)
-                else:  # classification tasks
-                    X_train_, X_test, y_train_, y_test = train_test_split(X, y, test_size=test_size, shuffle=True, stratify=y, random_state=seed)
-
-            # Further split the training set if train_size < 1.0
-            if train_size < 1.0:
-                X_train, _, y_train, _ = train_test_split(X_train_, y_train_, test_size=(1.0 - train_size), shuffle=True, stratify=y_train_, random_state=seed)
-            elif train_size == 1.0:
-                X_train, y_train = X_train_, y_train_
-
-            # Summary
-            n_train, n_feature, n_class = X_train.shape[0], X_train.shape[1], len(np.unique(y_train))
-            print("X_train: {}, y_train: {}".format(X_train.shape, y_train.shape))
+                    X_train_, X_test, y_train_, y_test = train_test_split(
+                        X, y,
+                        test_size=test_size,
+                        shuffle=True,
+                        random_state=seed
+                    )
+                else:
+                    # classification task
+                    X_train_, X_test, y_train_, y_test = train_test_split(
+                        X, y,
+                        test_size=test_size,
+                        shuffle=True,
+                        stratify=y,
+                        random_state=seed
+                    )
+        
+                # If you want only a fraction of the training set
+                if train_size < 1.0:
+                    X_train, _, y_train, _ = train_test_split(
+                        X_train_, y_train_,
+                        test_size=(1.0 - train_size),
+                        shuffle=True,
+                        stratify=y_train_,
+                        random_state=seed
+                    )
+                else:  # train_size == 1.0
+                    X_train, y_train = X_train_, y_train_
+        
+            # …now X_train, y_train (and possibly X_test, y_test) are always defined
+            n_train, n_feature = X_train.shape
+            n_class = len(np.unique(y_train))
+            print(f"X_train: {X_train.shape}, y_train: {y_train.shape}")
             if X_test is not None:
-                n_test = X_test.shape[0]
-                print("X_test: {}, y_test: {}".format(X_test.shape, y_test.shape))
-            else: n_test = None
-            print("n_train: {}, n_test: {}, n_feature: {}, n_class: {}".format(n_train, n_test, n_feature, n_class))
-            print("feature_names: {}".format(names))
-
+                print(f"X_test: {X_test.shape}, y_test: {y_test.shape}")
+            print(f"n_train: {n_train}, n_feature: {n_feature}, n_class: {n_class}")
+        
             return X_train, y_train, X_test, y_test, n_train, n_test, n_feature, n_class, names
 
+    
     except Exception as e:
         print(f"Error loading dataset {dataset}: {e}")
         return None, None, None, None, None, None, None, None, None
